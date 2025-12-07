@@ -1,0 +1,16 @@
+{
+  "name": "portfolio",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "verify:env": "node scripts/verify-env.js",
+    "test:cloudinary": "node scripts/test-cloudinary.js",
+    "test:resend": "node scripts/test-resend.js",
+    "test:neon": "node scripts/test-neon.js"
+  },
+  "dependencies": {
+    "cloudinary": "^2.8.0",
+    "pg": "^8.16.3",
+    "resend": "^6.5.2"
+  }
+}
