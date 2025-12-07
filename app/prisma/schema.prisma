@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  role         String   @default("admin")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  summary     String?
+  description String?
+  content     String?
+  image       String?
+  githubUrl   String?
+  liveUrl     String?
+  techStack   String[]
+  featured    Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([featured, order])
+  @@map("projects")
+}
+
+model BlogPost {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  excerpt   String?
+  content   String
+  coverImage String?
+  tags      String[]
+  published Boolean  @default(true)
+  views     Int      @default(0)
+  readTime  Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@map("blog_posts")
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String
+  read      Boolean  @default(false)
+  replied   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([read, createdAt])
+  @@map("contacts")
+}
+
+model Analytics {
+  id        String   @id @default(cuid())
+  pageUrl   String
+  date      DateTime @default(now())
+  views     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([pageUrl, date])
+  @@map("analytics")
+}
