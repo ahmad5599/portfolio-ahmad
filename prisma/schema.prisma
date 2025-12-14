@@ -1,0 +1,142 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  role         String   @default("admin")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  summary     String?
+  description String?
+  content     String?
+  image       String?
+  githubUrl   String?
+  liveUrl     String?
+  techStack   String[]
+  featured    Boolean  @default(false)
+  isPersonal  Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([featured, order])
+  @@map("projects")
+}
+
+model BlogPost {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  excerpt   String?
+  content   String
+  coverImage String?
+  tags      String[]
+  published Boolean  @default(true)
+  views     Int      @default(0)
+  readTime  Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@map("blog_posts")
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String
+  read      Boolean  @default(false)
+  replied   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([read, createdAt])
+  @@map("contacts")
+}
+
+model Analytics {
+  id        String   @id @default(cuid())
+  pageUrl   String
+  date      DateTime @default(now())
+  views     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([pageUrl, date])
+  @@map("analytics")
+}
+
+model Experience {
+  id           String    @id @default(cuid())
+  position     String
+  company      String
+  location     String?
+  startDate    DateTime
+  endDate      DateTime?
+  description  String?
+  technologies String[]
+  order        Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("experiences")
+}
+
+model Education {
+  id          String    @id @default(cuid())
+  degree      String
+  institution String
+  location    String?
+  startDate   DateTime
+  endDate     DateTime?
+  description String?
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("educations")
+}
+
+model Certification {
+  id        String   @id @default(cuid())
+  name      String
+  issuer    String
+  date      DateTime
+  url       String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("certifications")
+}
+
+model Profile {
+  id        String   @id @default(cuid())
+  name      String
+  title     String
+  bio       String
+  avatar    String?
+  resumeUrl String?
+  skills    String[]
+  socials   Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("profiles")
+}

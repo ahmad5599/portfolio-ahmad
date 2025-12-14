@@ -3,14 +3,51 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
     "verify:env": "node scripts/verify-env.js",
     "test:cloudinary": "node scripts/test-cloudinary.js",
     "test:resend": "node scripts/test-resend.js",
     "test:neon": "node scripts/test-neon.js"
   },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
   "dependencies": {
+    "@next/third-parties": "^16.0.10",
+    "@prisma/client": "^5.19.1",
+    "@radix-ui/react-slot": "^1.2.4",
+    "bcryptjs": "^3.0.3",
+    "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.8.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.23.26",
+    "lucide-react": "^0.556.0",
+    "next": "16.0.7",
+    "next-auth": "5.0.0-beta.30",
+    "next-themes": "^0.4.6",
+    "nextjs-toploader": "^3.9.17",
     "pg": "^8.16.3",
-    "resend": "^6.5.2"
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "resend": "^6.6.0",
+    "tailwind-merge": "^3.4.0",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.0.7",
+    "prisma": "^5.19.1",
+    "tailwindcss": "^4",
+    "tw-animate-css": "^1.4.0",
+    "typescript": "^5"
   }
 }
