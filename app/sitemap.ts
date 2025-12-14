@@ -1,8 +1,9 @@
+import { env } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
 import { MetadataRoute } from "next";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://ahmadhamid.vercel.app";
+  const baseUrl = env.nextauthUrl || "https://ahmadhamid.vercel.app";
 
   const [projects, posts] = await Promise.all([
     prisma.project.findMany({ select: { slug: true, updatedAt: true } }),

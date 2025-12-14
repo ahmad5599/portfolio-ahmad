@@ -1,9 +1,11 @@
 "use client";
 
+import { createPost, deletePost, updatePost } from "@/app/actions/blog";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type BlogPost = {
   id: string;
@@ -56,6 +58,10 @@ export default function BlogClient({ initialPosts, totalPages, currentPage }: Pr
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    setPosts(initialPosts);
+  }, [initialPosts]);
+
   function slugify(text: string) {
     return text
       .toString()
@@ -85,10 +91,6 @@ export default function BlogClient({ initialPosts, totalPages, currentPage }: Pr
   };
 
   async function refreshPosts() {
-    const res = await fetch(`/api/blog?page=${currentPage}`, { cache: "no-store" });
-    if (!res.ok) throw new Error("Failed to refresh posts");
-    const data: BlogPost[] = await res.json();
-    setPosts(data);
     router.refresh();
   }
 
@@ -98,40 +100,26 @@ export default function BlogClient({ initialPosts, totalPages, currentPage }: Pr
     setStatus(null);
     setLoading(true);
 
-    const payload = {
-      title: form.title.trim(),
-      slug: slugify(form.slug),
-      excerpt: form.excerpt.trim() || undefined,
-      content: form.content.trim(),
-      coverImage: form.coverImage.trim() || undefined,
-      tags: form.tags
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
-      published: form.published,
-      readTime: Number.isFinite(form.readTime) ? form.readTime : undefined,
-    };
+    const formData = new FormData();
+    formData.append("title", form.title.trim());
+    formData.append("slug", slugify(form.slug));
+    if (form.excerpt.trim()) formData.append("excerpt", form.excerpt.trim());
+    formData.append("content", form.content.trim());
+    if (form.coverImage.trim()) formData.append("coverImage", form.coverImage.trim());
+    formData.append("tags", form.tags);
+    formData.append("published", String(form.published));
+    if (Number.isFinite(form.readTime)) formData.append("readTime", String(form.readTime));
 
     try {
-      const url = form.id ? `/api/blog/${form.id}` : "/api/blog";
-      const method = form.id ? "PUT" : "POST";
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      let result;
+      if (form.id) {
+        result = await updatePost(form.id, { error: "" }, formData);
+      } else {
+        result = await createPost({ error: "" }, formData);
+      }
 
-      if (!res.ok) {
-        const text = await res.text();
-        try {
-          const body = JSON.parse(text);
-          throw new Error(body?.error || "Request failed");
-        } catch (e) {
-           if (e instanceof Error && e.message !== "Unexpected end of JSON input") {
-             throw e;
-          }
-          throw new Error(`Request failed with status ${res.status}`);
-        }
+      if (result.error) {
+        throw new Error(result.error);
       }
 
       await refreshPosts();
@@ -150,11 +138,8 @@ export default function BlogClient({ initialPosts, totalPages, currentPage }: Pr
     setStatus(null);
     setLoading(true);
     try {
-      const res = await fetch(`/api/blog/${id}`, { method: "DELETE" });
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        throw new Error(body?.error || "Delete failed");
-      }
+      const result = await deletePost(id);
+      if (result.error) throw new Error(result.error);
       await refreshPosts();
       setStatus("Post deleted");
     } catch (err) {
@@ -307,6 +292,7 @@ export default function BlogClient({ initialPosts, totalPages, currentPage }: Pr
           <table className="min-w-full text-left text-sm">
             <thead>
               <tr className="border-b border-border text-muted-foreground">
+                <th className="px-3 py-2">Image</th>
                 <th className="px-3 py-2">Title</th>
                 <th className="px-3 py-2">Slug</th>
                 <th className="px-3 py-2">Status</th>
@@ -317,13 +303,28 @@ export default function BlogClient({ initialPosts, totalPages, currentPage }: Pr
             <tbody>
               {sortedPosts.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">
+                  <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">
                     No posts yet. Create one above.
                   </td>
                 </tr>
               ) : (
                 sortedPosts.map((post) => (
                   <tr key={post.id} className="border-b border-border last:border-0 hover:bg-muted/50">
+                    <td className="px-3 py-2">
+                      {post.coverImage ? (
+                        <div className="relative h-10 w-16 overflow-hidden rounded-md">
+                          <Image
+                            src={post.coverImage}
+                            alt={post.title}
+                            fill
+                            className="object-cover"
+                            sizes="64px"
+                          />
+                        </div>
+                      ) : (
+                        <div className="h-10 w-16 rounded-md bg-muted" />
+                      )}
+                    </td>
                     <td className="px-3 py-2 font-medium text-foreground">{post.title}</td>
                     <td className="px-3 py-2 text-muted-foreground">{post.slug}</td>
                     <td className="px-3 py-2">

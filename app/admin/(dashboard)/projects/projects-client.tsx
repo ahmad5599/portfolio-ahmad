@@ -1,12 +1,17 @@
 "use client";
 
+import { createProject, deleteProject, updateProject } from "@/app/actions/projects";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { Prisma } from "@prisma/client";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-type Project = Prisma.ProjectGetPayload<{}>;
+type Project = Omit<Prisma.ProjectGetPayload<{}>, "createdAt" | "updatedAt"> & {
+  createdAt: string;
+  updatedAt: string;
+};
 
 type FormState = {
   id?: string;
@@ -52,6 +57,10 @@ export default function ProjectsClient({ initialProjects, totalPages, currentPag
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    setProjects(initialProjects);
+  }, [initialProjects]);
+
   function slugify(text: string) {
     return text
       .toString()
@@ -85,10 +94,6 @@ export default function ProjectsClient({ initialProjects, totalPages, currentPag
   };
 
   async function refreshProjects() {
-    const res = await fetch(`/api/projects?page=${currentPage}`, { cache: "no-store" });
-    if (!res.ok) throw new Error("Failed to refresh projects");
-    const data: Project[] = await res.json();
-    setProjects(data);
     router.refresh();
   }
 
@@ -98,45 +103,30 @@ export default function ProjectsClient({ initialProjects, totalPages, currentPag
     setStatus(null);
     setLoading(true);
 
-    const payload = {
-      title: form.title.trim(),
-      slug: slugify(form.slug),
-      summary: form.summary.trim() || undefined,
-      description: form.description.trim() || undefined,
-      content: form.content.trim() || undefined,
-      techStack: form.techStack
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
-      featured: form.featured,
-      isPersonal: form.isPersonal,
-      order: Number(form.order),
-      githubUrl: form.githubUrl.trim() || undefined,
-      liveUrl: form.liveUrl.trim() || undefined,
-      image: form.image.trim() || undefined,
-    };
+    const formData = new FormData();
+    formData.append("title", form.title.trim());
+    formData.append("slug", slugify(form.slug));
+    if (form.summary.trim()) formData.append("summary", form.summary.trim());
+    if (form.description.trim()) formData.append("description", form.description.trim());
+    if (form.content.trim()) formData.append("content", form.content.trim());
+    formData.append("techStack", form.techStack);
+    formData.append("featured", String(form.featured));
+    formData.append("isPersonal", String(form.isPersonal));
+    formData.append("order", String(form.order));
+    if (form.githubUrl.trim()) formData.append("githubUrl", form.githubUrl.trim());
+    if (form.liveUrl.trim()) formData.append("liveUrl", form.liveUrl.trim());
+    if (form.image.trim()) formData.append("image", form.image.trim());
 
     try {
-      const url = form.id ? `/api/projects/${form.id}` : "/api/projects";
-      const method = form.id ? "PATCH" : "POST";
+      let result;
+      if (form.id) {
+        result = await updateProject(form.id, { error: "" }, formData);
+      } else {
+        result = await createProject({ error: "" }, formData);
+      }
 
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        try {
-          const data = JSON.parse(text);
-          throw new Error(data.error || "Something went wrong");
-        } catch (e) {
-          if (e instanceof Error && e.message !== "Unexpected end of JSON input") {
-             throw e;
-          }
-          throw new Error(`Request failed with status ${res.status}`);
-        }
+      if (result.error) {
+        throw new Error(result.error);
       }
 
       await refreshProjects();
@@ -178,8 +168,8 @@ export default function ProjectsClient({ initialProjects, totalPages, currentPag
     setLoading(true);
 
     try {
-      const res = await fetch(`/api/projects/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete project");
+      const result = await deleteProject(id);
+      if (result.error) throw new Error(result.error);
       await refreshProjects();
       setStatus("Project deleted successfully.");
     } catch (err) {
@@ -336,6 +326,7 @@ export default function ProjectsClient({ initialProjects, totalPages, currentPag
           <table className="min-w-full text-left text-sm">
             <thead>
               <tr className="border-b border-border text-muted-foreground">
+                <th className="px-3 py-2">Image</th>
                 <th className="px-3 py-2">Title</th>
                 <th className="px-3 py-2">Slug</th>
                 <th className="px-3 py-2">Tech</th>
@@ -348,13 +339,28 @@ export default function ProjectsClient({ initialProjects, totalPages, currentPag
             <tbody>
               {sortedProjects.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">
+                  <td colSpan={8} className="px-3 py-6 text-center text-muted-foreground">
                     No projects yet. Create one above.
                   </td>
                 </tr>
               ) : (
                 sortedProjects.map((project) => (
                   <tr key={project.id} className="border-b border-border hover:bg-muted/50">
+                    <td className="px-3 py-2">
+                      {project.image ? (
+                        <div className="relative h-10 w-16 overflow-hidden rounded-md">
+                          <Image
+                            src={project.image}
+                            alt={project.title}
+                            fill
+                            className="object-cover"
+                            sizes="64px"
+                          />
+                        </div>
+                      ) : (
+                        <div className="h-10 w-16 rounded-md bg-muted" />
+                      )}
+                    </td>
                     <td className="px-3 py-2 font-medium text-foreground">{project.title}</td>
                     <td className="px-3 py-2 text-muted-foreground">{project.slug}</td>
                     <td className="px-3 py-2 text-muted-foreground truncate max-w-xs">

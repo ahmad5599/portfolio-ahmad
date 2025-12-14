@@ -1,5 +1,7 @@
 "use client";
 
+import { uploadImage } from "@/app/actions/upload";
+import Image from "next/image";
 import { useState } from "react";
 
 type ImageUploadProps = {
@@ -23,18 +25,15 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
+      const result = await uploadImage(formData);
 
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        throw new Error(body?.error || "Upload failed");
+      if (result.error) {
+        throw new Error(result.error);
       }
 
-      const data = await res.json();
-      onChange(data.url);
+      if (result.url) {
+        onChange(result.url);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
@@ -46,8 +45,13 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
     <div className="space-y-4 w-full">
       {value ? (
         <div className="relative aspect-video w-full max-w-md overflow-hidden rounded-lg border border-border bg-muted">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={value} alt="Upload preview" className="h-full w-full object-cover" />
+          <Image
+            src={value}
+            alt="Upload preview"
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
           <button
             type="button"
             onClick={() => onChange("")}

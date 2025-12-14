@@ -1,5 +1,6 @@
 "use client";
 
+import { updateProfile } from "@/app/actions/profile";
 import { Button } from "@/components/ui/button";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { Input } from "@/components/ui/input";
@@ -40,28 +41,19 @@ export default function ProfileClient({ initialProfile }: Props) {
     setStatus(null);
     setLoading(true);
 
-    const payload = {
-      name: form.name.trim(),
-      title: form.title.trim(),
-      bio: form.bio.trim(),
-      avatar: form.avatar.trim() || undefined,
-      resumeUrl: form.resumeUrl.trim() || undefined,
-      skills: form.skills
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
-    };
+    const formData = new FormData();
+    formData.append("name", form.name.trim());
+    formData.append("title", form.title.trim());
+    formData.append("bio", form.bio.trim());
+    if (form.avatar.trim()) formData.append("avatar", form.avatar.trim());
+    if (form.resumeUrl.trim()) formData.append("resumeUrl", form.resumeUrl.trim());
+    formData.append("skills", form.skills);
 
     try {
-      const res = await fetch("/api/profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const result = await updateProfile({ error: "" }, formData);
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Something went wrong");
+      if (result.error) {
+        throw new Error(result.error);
       }
 
       setStatus("Profile updated successfully.");

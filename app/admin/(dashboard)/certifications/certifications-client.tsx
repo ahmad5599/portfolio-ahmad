@@ -1,10 +1,11 @@
 "use client";
 
+import { createCertification, deleteCertification, updateCertification } from "@/app/actions/certifications";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Edit, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Certification = {
   id: string;
@@ -43,6 +44,10 @@ export default function CertificationsClient({ initialCertifications }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    setCertifications(initialCertifications);
+  }, [initialCertifications]);
+
   const resetForm = () => {
     setForm({
       id: undefined,
@@ -55,10 +60,6 @@ export default function CertificationsClient({ initialCertifications }: Props) {
   };
 
   async function refreshCertifications() {
-    const res = await fetch("/api/certifications", { cache: "no-store" });
-    if (!res.ok) throw new Error("Failed to refresh certifications");
-    const data: Certification[] = await res.json();
-    setCertifications(data);
     router.refresh();
   }
 
@@ -68,27 +69,23 @@ export default function CertificationsClient({ initialCertifications }: Props) {
     setStatus(null);
     setLoading(true);
 
-    const payload = {
-      name: form.name.trim(),
-      issuer: form.issuer.trim(),
-      date: form.date,
-      url: form.url.trim() || undefined,
-      order: Number(form.order),
-    };
+    const formData = new FormData();
+    formData.append("name", form.name.trim());
+    formData.append("issuer", form.issuer.trim());
+    formData.append("date", form.date);
+    if (form.url.trim()) formData.append("url", form.url.trim());
+    formData.append("order", String(form.order));
 
     try {
-      const url = form.id ? `/api/certifications/${form.id}` : "/api/certifications";
-      const method = form.id ? "PATCH" : "POST";
+      let result;
+      if (form.id) {
+        result = await updateCertification(form.id, { error: "" }, formData);
+      } else {
+        result = await createCertification({ error: "" }, formData);
+      }
 
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Something went wrong");
+      if (result.error) {
+        throw new Error(result.error);
       }
 
       await refreshCertifications();
@@ -123,8 +120,8 @@ export default function CertificationsClient({ initialCertifications }: Props) {
     setLoading(true);
 
     try {
-      const res = await fetch(`/api/certifications/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete certification");
+      const result = await deleteCertification(id);
+      if (result.error) throw new Error(result.error);
       await refreshCertifications();
       setStatus("Certification deleted successfully.");
     } catch (err) {

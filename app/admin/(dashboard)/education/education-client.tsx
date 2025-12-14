@@ -1,10 +1,11 @@
 "use client";
 
+import { createEducation, deleteEducation, updateEducation } from "@/app/actions/education";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Edit, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Education = {
   id: string;
@@ -51,6 +52,10 @@ export default function EducationClient({ initialEducations }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    setEducations(initialEducations);
+  }, [initialEducations]);
+
   const resetForm = () => {
     setForm({
       id: undefined,
@@ -65,10 +70,6 @@ export default function EducationClient({ initialEducations }: Props) {
   };
 
   async function refreshEducations() {
-    const res = await fetch("/api/education", { cache: "no-store" });
-    if (!res.ok) throw new Error("Failed to refresh education");
-    const data: Education[] = await res.json();
-    setEducations(data);
     router.refresh();
   }
 
@@ -78,29 +79,25 @@ export default function EducationClient({ initialEducations }: Props) {
     setStatus(null);
     setLoading(true);
 
-    const payload = {
-      degree: form.degree.trim(),
-      institution: form.institution.trim(),
-      location: form.location.trim() || undefined,
-      startDate: form.startDate,
-      endDate: form.endDate || null,
-      description: form.description.trim() || undefined,
-      order: Number(form.order),
-    };
+    const formData = new FormData();
+    formData.append("degree", form.degree.trim());
+    formData.append("institution", form.institution.trim());
+    if (form.location.trim()) formData.append("location", form.location.trim());
+    formData.append("startDate", form.startDate);
+    if (form.endDate) formData.append("endDate", form.endDate);
+    if (form.description.trim()) formData.append("description", form.description.trim());
+    formData.append("order", String(form.order));
 
     try {
-      const url = form.id ? `/api/education/${form.id}` : "/api/education";
-      const method = form.id ? "PATCH" : "POST";
+      let result;
+      if (form.id) {
+        result = await updateEducation(form.id, { error: "" }, formData);
+      } else {
+        result = await createEducation({ error: "" }, formData);
+      }
 
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Something went wrong");
+      if (result.error) {
+        throw new Error(result.error);
       }
 
       await refreshEducations();
@@ -137,8 +134,8 @@ export default function EducationClient({ initialEducations }: Props) {
     setLoading(true);
 
     try {
-      const res = await fetch(`/api/education/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete education");
+      const result = await deleteEducation(id);
+      if (result.error) throw new Error(result.error);
       await refreshEducations();
       setStatus("Education deleted successfully.");
     } catch (err) {

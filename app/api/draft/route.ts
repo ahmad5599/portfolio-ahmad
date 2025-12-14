@@ -12,7 +12,7 @@ export async function GET(request: Request) {
 
   const session = await auth();
 
-  if (!session || session.user?.role !== "admin") {
+  if (!session || (session.user as any)?.role !== "admin") {
     return new Response("Unauthorized", { status: 401 });
   }
 

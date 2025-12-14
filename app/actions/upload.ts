@@ -1,24 +1,23 @@
+"use server";
+
 import { auth } from "@/lib/auth";
 import { cloudinary } from "@/lib/cloudinary";
 import { env } from "@/lib/env";
-import { NextResponse } from "next/server";
 
-export async function POST(req: Request) {
+export async function uploadImage(formData: FormData) {
   try {
     const session = await auth();
     if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      throw new Error("Unauthorized");
     }
 
     if (!env.cloudinary.cloudName || !env.cloudinary.apiKey || !env.cloudinary.apiSecret) {
-      return NextResponse.json({ error: "Cloudinary not configured" }, { status: 500 });
+      throw new Error("Cloudinary not configured");
     }
 
-    const formData = await req.formData();
     const file = formData.get("file") as File | null;
-
     if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+      throw new Error("No file provided");
     }
 
     const arrayBuffer = await file.arrayBuffer();
@@ -34,9 +33,9 @@ export async function POST(req: Request) {
       ).end(buffer);
     });
 
-    return NextResponse.json({ url: result.secure_url });
+    return { url: result.secure_url };
   } catch (error) {
     console.error("Upload error:", error);
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+    return { error: error instanceof Error ? error.message : "Upload failed" };
   }
 }

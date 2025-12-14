@@ -1,10 +1,11 @@
 "use client";
 
+import { createExperience, deleteExperience, updateExperience } from "@/app/actions/experience";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Edit, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Experience = {
   id: string;
@@ -54,6 +55,10 @@ export default function ExperienceClient({ initialExperiences }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    setExperiences(initialExperiences);
+  }, [initialExperiences]);
+
   const resetForm = () => {
     setForm({
       id: undefined,
@@ -69,10 +74,6 @@ export default function ExperienceClient({ initialExperiences }: Props) {
   };
 
   async function refreshExperiences() {
-    const res = await fetch("/api/experience", { cache: "no-store" });
-    if (!res.ok) throw new Error("Failed to refresh experiences");
-    const data: Experience[] = await res.json();
-    setExperiences(data);
     router.refresh();
   }
 
@@ -82,33 +83,26 @@ export default function ExperienceClient({ initialExperiences }: Props) {
     setStatus(null);
     setLoading(true);
 
-    const payload = {
-      position: form.position.trim(),
-      company: form.company.trim(),
-      location: form.location.trim() || undefined,
-      startDate: form.startDate,
-      endDate: form.endDate || null,
-      description: form.description.trim() || undefined,
-      technologies: form.technologies
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
-      order: Number(form.order),
-    };
+    const formData = new FormData();
+    formData.append("position", form.position.trim());
+    formData.append("company", form.company.trim());
+    if (form.location.trim()) formData.append("location", form.location.trim());
+    formData.append("startDate", form.startDate);
+    if (form.endDate) formData.append("endDate", form.endDate);
+    if (form.description.trim()) formData.append("description", form.description.trim());
+    formData.append("technologies", form.technologies);
+    formData.append("order", String(form.order));
 
     try {
-      const url = form.id ? `/api/experience/${form.id}` : "/api/experience";
-      const method = form.id ? "PATCH" : "POST";
+      let result;
+      if (form.id) {
+        result = await updateExperience(form.id, { error: "" }, formData);
+      } else {
+        result = await createExperience({ error: "" }, formData);
+      }
 
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Something went wrong");
+      if (result.error) {
+        throw new Error(result.error);
       }
 
       await refreshExperiences();
@@ -146,8 +140,8 @@ export default function ExperienceClient({ initialExperiences }: Props) {
     setLoading(true);
 
     try {
-      const res = await fetch(`/api/experience/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete experience");
+      const result = await deleteExperience(id);
+      if (result.error) throw new Error(result.error);
       await refreshExperiences();
       setStatus("Experience deleted successfully.");
     } catch (err) {
