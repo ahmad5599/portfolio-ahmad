@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portfolio Website
 
-## Getting Started
+A modern, full-stack developer portfolio built with Next.js 15, TypeScript, Tailwind CSS, and Prisma.
 
-First, run the development server:
+## 🚀 Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Modern Tech Stack**: Built with Next.js 15 (App Router), React 19, and TypeScript.
+- **Admin Dashboard**: Secure CMS to manage projects, blog posts, and profile details.
+- **Authentication**: Secure admin login using NextAuth.js v5.
+- **Database**: PostgreSQL database managed via Prisma ORM (hosted on Neon).
+- **Image Upload**: Integrated with Cloudinary for media management.
+- **Email**: Contact form powered by Resend.
+- **Security**: Rate limiting and Cloudflare Turnstile CAPTCHA protection.
+- **Responsive Design**: Fully responsive UI with Dark Mode support using shadcn/ui.
+- **SEO Optimized**: Dynamic sitemap and robots.txt generation.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Tech Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Framework**: [Next.js 15](https://nextjs.org/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) & [shadcn/ui](https://ui.shadcn.com/)
+- **Database**: [PostgreSQL](https://www.postgresql.org/) (Neon) & [Prisma](https://www.prisma.io/)
+- **Auth**: [NextAuth.js](https://authjs.dev/)
+- **Forms**: [React Hook Form](https://react-hook-form.com/) & [Zod](https://zod.dev/)
+- **Email**: [Resend](https://resend.com/)
+- **Deployment**: [Netlify](https://www.netlify.com/)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📦 Getting Started
 
-## Learn More
+### Prerequisites
 
-To learn more about Next.js, take a look at the following resources:
+- Node.js 18+ 
+- PostgreSQL Database (local or cloud)
+- Cloudinary Account
+- Resend Account
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Installation
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/portfolio.git
+   cd portfolio
+   ```
 
-## Deploy on Vercel
+2. **Install dependencies**
+   ```bash
+   pnpm install
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+3. **Environment Setup**
+   Copy `.env.example` to `.env` and fill in the required values:
+   ```bash
+   cp .env.example .env
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+4. **Database Setup**
+   ```bash
+   npx prisma generate
+   npx prisma db push
+   npx prisma db seed
+   ```
+
+5. **Run Development Server**
+   ```bash
+   pnpm dev
+   ```
+
+   Open [http://localhost:3000](http://localhost:3000) to view the site.
+
+## 🔐 Environment Variables
+
+See `.env.example` for the full list of required environment variables.
+
+## 📝 License
+
+This project is licensed under the MIT License.
