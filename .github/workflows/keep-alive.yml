@@ -10,18 +10,16 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Install psql
-        run: sudo apt-get install -y postgresql-client
-
-      - name: Ping Supabase via direct DB query
-        # Direct PostgreSQL connection counts as activity for Supabase
-        run: psql "${{ secrets.DATABASE_URL }}" -c "SELECT 'keep-alive' AS status, now() AS pinged_at;"
-
       - name: Ping Supabase REST API
-        # REST API call is also tracked as activity by Supabase
+        # REST API call is tracked as activity by Supabase and avoids DB connection pool limits
         run: |
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
             "https://lpvajnhlbxisqbvkaads.supabase.co/rest/v1/" \
             -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
           echo "REST API response: $STATUS"
+          if [ "$STATUS" = "000" ]; then
+            echo "Could not reach Supabase REST API"
+            exit 1
+          fi
+          echo "Supabase is alive!"
