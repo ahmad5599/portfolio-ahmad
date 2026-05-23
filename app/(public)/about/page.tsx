@@ -63,6 +63,13 @@ export default async function AboutPage() {
               </Button>
             </div>
           )}
+          <div className="flex justify-center">
+            <Button asChild variant="outline">
+              <a href="/api/resume" download>
+                <Download className="mr-2 h-4 w-4" /> Download CV
+              </a>
+            </Button>
+          </div>
         </MotionWrapper>
 
         <MotionWrapper delay={0.2} className="prose prose-neutral dark:prose-invert max-w-none text-lg text-muted-foreground">

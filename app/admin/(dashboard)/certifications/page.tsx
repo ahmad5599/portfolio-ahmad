@@ -17,8 +17,8 @@ export default async function AdminCertificationsPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-semibold">Certifications</h1>
-        <p className="text-slate-600">Manage your certifications and awards.</p>
+        <h1 className="text-2xl font-semibold">Awards &amp; Achievements</h1>
+        <p className="text-slate-600">Manage your certifications, awards, and hackathon wins.</p>
       </div>
       <CertificationsClient initialCertifications={formattedCertifications} />
     </div>

@@ -7,6 +7,16 @@ import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+type Socials = {
+  email?: string;
+  phone?: string;
+  location?: string;
+  linkedin?: string;
+  github?: string;
+  portfolio?: string;
+  languages?: string;
+};
+
 type Profile = {
   id?: string;
   name: string;
@@ -15,6 +25,7 @@ type Profile = {
   avatar: string | null;
   resumeUrl: string | null;
   skills: string[];
+  socials?: Socials | null;
 };
 
 type Props = {
@@ -23,6 +34,7 @@ type Props = {
 
 export default function ProfileClient({ initialProfile }: Props) {
   const router = useRouter();
+  const socials = (initialProfile?.socials ?? {}) as Socials;
   const [form, setForm] = useState({
     name: initialProfile?.name || "",
     title: initialProfile?.title || "",
@@ -30,6 +42,13 @@ export default function ProfileClient({ initialProfile }: Props) {
     avatar: initialProfile?.avatar || "",
     resumeUrl: initialProfile?.resumeUrl || "",
     skills: initialProfile?.skills.join(", ") || "",
+    email: socials.email || "",
+    phone: socials.phone || "",
+    location: socials.location || "",
+    linkedin: socials.linkedin || "",
+    github: socials.github || "",
+    portfolio: socials.portfolio || "",
+    languages: socials.languages || "",
   });
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +67,13 @@ export default function ProfileClient({ initialProfile }: Props) {
     if (form.avatar.trim()) formData.append("avatar", form.avatar.trim());
     if (form.resumeUrl.trim()) formData.append("resumeUrl", form.resumeUrl.trim());
     formData.append("skills", form.skills);
+    formData.append("email", form.email.trim());
+    formData.append("phone", form.phone.trim());
+    formData.append("location", form.location.trim());
+    formData.append("linkedin", form.linkedin.trim());
+    formData.append("github", form.github.trim());
+    formData.append("portfolio", form.portfolio.trim());
+    formData.append("languages", form.languages.trim());
 
     try {
       const result = await updateProfile({ error: "" }, formData);
@@ -115,12 +141,90 @@ export default function ProfileClient({ initialProfile }: Props) {
           />
         </div>
         <div className="space-y-1">
-          <label className="text-sm font-medium text-foreground" htmlFor="resume">Resume URL</label>
+          <label className="text-sm font-medium text-foreground" htmlFor="resume">Resume URL (legacy)</label>
           <Input
             id="resume"
             value={form.resumeUrl}
             onChange={(e) => setForm((f) => ({ ...f, resumeUrl: e.target.value }))}
           />
+        </div>
+
+        <div className="border-t border-border pt-4">
+          <h3 className="mb-3 text-sm font-semibold text-foreground">Contact &amp; Social Links</h3>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground" htmlFor="email">Email</label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={form.email}
+                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground" htmlFor="phone">Phone</label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="+92 300 0000000"
+                value={form.phone}
+                onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground" htmlFor="location">Location</label>
+              <Input
+                id="location"
+                placeholder="City, Country"
+                value={form.location}
+                onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground" htmlFor="linkedin">LinkedIn URL</label>
+              <Input
+                id="linkedin"
+                placeholder="https://linkedin.com/in/yourprofile"
+                value={form.linkedin}
+                onChange={(e) => setForm((f) => ({ ...f, linkedin: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground" htmlFor="github">GitHub URL</label>
+              <Input
+                id="github"
+                placeholder="https://github.com/yourusername"
+                value={form.github}
+                onChange={(e) => setForm((f) => ({ ...f, github: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground" htmlFor="portfolio">Portfolio Website</label>
+              <Input
+                id="portfolio"
+                placeholder="https://yourportfolio.com"
+                value={form.portfolio}
+                onChange={(e) => setForm((f) => ({ ...f, portfolio: e.target.value }))}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-border pt-4">
+          <h3 className="mb-3 text-sm font-semibold text-foreground">CV Extra Sections</h3>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground" htmlFor="languages">Spoken Languages</label>
+              <p className="text-xs text-muted-foreground">Comma-separated. Example: English (Native), Urdu (Fluent)</p>
+              <Input
+                id="languages"
+                placeholder="English (Native), Urdu (Native)"
+                value={form.languages}
+                onChange={(e) => setForm((f) => ({ ...f, languages: e.target.value }))}
+              />
+            </div>
+          </div>
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}

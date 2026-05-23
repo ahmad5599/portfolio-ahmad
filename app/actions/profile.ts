@@ -12,6 +12,17 @@ const profileSchema = z.object({
   avatar: z.string().optional(),
   resumeUrl: z.string().optional(),
   skills: z.array(z.string()).default([]),
+  socials: z
+    .object({
+      email: z.string().optional(),
+      phone: z.string().optional(),
+      location: z.string().optional(),
+      linkedin: z.string().optional(),
+      github: z.string().optional(),
+      portfolio: z.string().optional(),
+      languages: z.string().optional(),
+    })
+    .optional(),
 });
 
 export type ProfileState = {
@@ -31,6 +42,15 @@ export async function updateProfile(prevState: ProfileState, formData: FormData)
       avatar: formData.get("avatar") as string || undefined,
       resumeUrl: formData.get("resumeUrl") as string || undefined,
       skills: formData.get("skills")?.toString().split(",").map(s => s.trim()).filter(Boolean) || [],
+      socials: {
+        email: (formData.get("email") as string)?.trim() || undefined,
+        phone: (formData.get("phone") as string)?.trim() || undefined,
+        location: (formData.get("location") as string)?.trim() || undefined,
+        linkedin: (formData.get("linkedin") as string)?.trim() || undefined,
+        github: (formData.get("github") as string)?.trim() || undefined,
+        portfolio: (formData.get("portfolio") as string)?.trim() || undefined,
+        languages: (formData.get("languages") as string)?.trim() || undefined,
+      },
     };
 
     const validated = profileSchema.safeParse(rawData);

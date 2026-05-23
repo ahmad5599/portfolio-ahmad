@@ -9,11 +9,12 @@ import { usePathname } from "next/navigation";
 const links = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/profile", label: "Profile" },
+  { href: "/admin/resume", label: "Resume" },
   { href: "/admin/projects", label: "Projects" },
   { href: "/admin/blog", label: "Blog" },
   { href: "/admin/experience", label: "Experience" },
   { href: "/admin/education", label: "Education" },
-  { href: "/admin/certifications", label: "Certifications" },
+  { href: "/admin/certifications", label: "Awards & Achievements" },
   { href: "/admin/contacts", label: "Contacts" },
   { href: "/admin/settings", label: "Settings" },
 ];

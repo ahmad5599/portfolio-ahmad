@@ -89,7 +89,7 @@ export default function CertificationsClient({ initialCertifications }: Props) {
       }
 
       await refreshCertifications();
-      setStatus(form.id ? "Certification updated successfully." : "Certification created successfully.");
+      setStatus(form.id ? "Entry updated successfully." : "Entry added successfully.");
       resetForm();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -111,7 +111,7 @@ export default function CertificationsClient({ initialCertifications }: Props) {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Are you sure you want to delete this certification?")) {
+    if (!confirm("Are you sure you want to delete this entry?")) {
       return;
     }
 
@@ -123,7 +123,7 @@ export default function CertificationsClient({ initialCertifications }: Props) {
       const result = await deleteCertification(id);
       if (result.error) throw new Error(result.error);
       await refreshCertifications();
-      setStatus("Certification deleted successfully.");
+      setStatus("Entry deleted successfully.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -135,7 +135,7 @@ export default function CertificationsClient({ initialCertifications }: Props) {
     <div className="grid gap-8 lg:grid-cols-2">
       <div className="rounded-lg border border-border bg-card p-6 shadow-sm h-fit">
         <h2 className="mb-4 text-lg font-semibold text-foreground">
-          {form.id ? "Edit Certification" : "Add Certification"}
+          {form.id ? "Edit Entry" : "Add Award / Certification"}
         </h2>
         <form onSubmit={handleSubmit} className="grid gap-4">
           <div className="space-y-1">
@@ -145,17 +145,17 @@ export default function CertificationsClient({ initialCertifications }: Props) {
               required
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              placeholder="AWS Certified Solutions Architect"
+              placeholder="MongoDB Certified Developer | 1st Place Hackathon"
             />
           </div>
           <div className="space-y-1">
-            <label className="text-sm font-medium text-foreground" htmlFor="issuer">Issuer</label>
+            <label className="text-sm font-medium text-foreground" htmlFor="issuer">Issuer / Organization</label>
             <Input
               id="issuer"
               required
               value={form.issuer}
               onChange={(e) => setForm((f) => ({ ...f, issuer: e.target.value }))}
-              placeholder="Amazon Web Services"
+              placeholder="MongoDB Inc. | Google | University Name"
             />
           </div>
           <div className="space-y-1">
@@ -192,7 +192,7 @@ export default function CertificationsClient({ initialCertifications }: Props) {
 
           <div className="flex gap-2">
             <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : form.id ? "Update Certification" : "Add Certification"}
+              {loading ? "Saving..." : form.id ? "Update" : "Add Entry"}
             </Button>
             {form.id && (
               <Button type="button" variant="outline" onClick={resetForm}>
@@ -227,7 +227,7 @@ export default function CertificationsClient({ initialCertifications }: Props) {
           </div>
         ))}
         {certifications.length === 0 && (
-          <p className="text-center text-muted-foreground py-8">No certifications added yet.</p>
+          <p className="text-center text-muted-foreground py-8">No awards or certifications added yet.</p>
         )}
       </div>
     </div>
