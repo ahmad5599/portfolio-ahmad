@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import CVDownloadButton from "./_components/cv-download-button";
 import { MotionWrapper, StaggerContainer, StaggerItem } from "@/components/ui/motion-wrapper";
 import { prisma } from "@/lib/prisma";
 import { Certification, Education, Experience, Project } from "@prisma/client";
@@ -64,11 +65,7 @@ export default async function AboutPage() {
             </div>
           )}
           <div className="flex justify-center">
-            <Button asChild variant="outline">
-              <a href="/api/resume" download>
-                <Download className="mr-2 h-4 w-4" /> Download CV
-              </a>
-            </Button>
+            <CVDownloadButton />
           </div>
         </MotionWrapper>
 

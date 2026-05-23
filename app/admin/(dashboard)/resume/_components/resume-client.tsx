@@ -1,8 +1,68 @@
 "use client";
 
 import { RESUME_FIELDS, ResumeField } from "@/lib/pdf/resume-fields";
-import { Download, FileText } from "lucide-react";
+import { Download, FileText, Loader2 } from "lucide-react";
+import { useState } from "react";
 import ATSScoreCard from "./ats-score-card";
+
+async function downloadPDF(url: string, filename: string) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Failed to generate PDF (${res.status})`);
+  const blob = await res.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.download = filename;
+  a.href = objectUrl;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(objectUrl);
+}
+
+function DownloadButton({
+  url,
+  filename,
+  label,
+  variant = "primary",
+}: {
+  url: string;
+  filename: string;
+  label: string;
+  variant?: "primary" | "secondary";
+}) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleClick() {
+    setLoading(true);
+    setError(null);
+    try {
+      await downloadPDF(url, filename);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Download failed.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <button
+        onClick={handleClick}
+        disabled={loading}
+        className={
+          variant === "primary"
+            ? "ml-4 inline-flex shrink-0 items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-60"
+            : "inline-flex w-full items-center justify-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:opacity-60"
+        }
+      >
+        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+        {loading ? "Generating…" : label}
+      </button>
+      {error && <p className="text-xs text-red-500">{error}</p>}
+    </div>
+  );
+}
 
 export default function ResumeClient() {
   const fields = Object.entries(RESUME_FIELDS) as [ResumeField, (typeof RESUME_FIELDS)[ResumeField]][];
@@ -20,14 +80,7 @@ export default function ResumeClient() {
               Complete CV with all projects, experience, education, and certifications. This is also the public download available on your About page.
             </p>
           </div>
-          <a
-            href="/api/resume"
-            download
-            className="ml-4 inline-flex shrink-0 items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
-          >
-            <Download className="h-4 w-4" />
-            Download CV
-          </a>
+          <DownloadButton url="/api/resume" filename="CV.pdf" label="Download CV" variant="primary" />
         </div>
       </div>
 
@@ -56,14 +109,12 @@ export default function ResumeClient() {
                   </p>
                 </div>
               </div>
-              <a
-                href={`/api/resume/${key}`}
-                download={config.filename}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-              >
-                <Download className="h-4 w-4" />
-                Download
-              </a>
+              <DownloadButton
+                url={`/api/resume/${key}`}
+                filename={config.filename}
+                label="Download"
+                variant="secondary"
+              />
             </div>
           ))}
         </div>
